@@ -1,17 +1,18 @@
 import {StatusBar} from 'expo-status-bar'
-import React from 'react'
+import React, {useState} from 'react'
 import {StyleSheet, Text, View, TouchableOpacity, Alert, ImageBackground, Image} from 'react-native'
 import {Camera} from 'expo-camera'
+import CameraPreview from './components/CameraPreview'
 
 export default function App() {
-  const [startCamera, setStartCamera] = React.useState(false)
-  const [previewVisible, setPreviewVisible] = React.useState(false)
-  const [capturedImage, setCapturedImage] = React.useState(null)
-  const [cameraType, setCameraType] = React.useState(Camera.Constants.Type.back)
+  const [cameraOpen, setStartCamera] = useState(false)
+  const [previewVisible, setPreviewVisible] = useState(false)
+  const [capturedImage, setCapturedImage] = useState(null)
+  const [cameraType, setCameraType] = useState(Camera.Constants.Type.back)
 
   var camera = null
 
-  const __startCamera = async () => {
+  const openCamera = async () => {
     const {status} = await Camera.requestCameraPermissionsAsync()
     console.log(status)
     if (status === 'granted') {
@@ -21,11 +22,11 @@ export default function App() {
     }
   }
 
-  const __closeCamera = () => {
+  const closeCamera = () => {
     setStartCamera(false)
   }
 
-  const __takePicture = async () => {
+  const takePicture = async () => {
     const photo = await camera.takePictureAsync()
     console.log(photo)
     setPreviewVisible(true)
@@ -33,27 +34,28 @@ export default function App() {
     setCapturedImage(photo)
   }
 
-  const __savePhoto = () => {
-    //add photo to db
+  const savePhoto = () => {
+    //add photo to db??
     Alert.alert('Photo saved')
     setCapturedImage(null)
   }
-  const __retakePicture = () => {
+  const retakePhoto = () => {
     setCapturedImage(null)
     setPreviewVisible(false)
-    __startCamera()
+    openCamera()
   }
 
-  const __switchCamera = () => {
+  const switchCamera = () => {
     if (cameraType === 'back') {
       setCameraType('front')
     } else {
       setCameraType('back')
     }
   }
+
   return (
     <View style={styles.container}>
-      {startCamera ? (
+      {cameraOpen ? (
         <View
           style={{
             flex: 1,
@@ -61,7 +63,7 @@ export default function App() {
           }}
         >
           {previewVisible && capturedImage ? (
-            <CameraPreview photo={capturedImage} savePhoto={__savePhoto} retakePicture={__retakePicture} />
+            <CameraPreview photo={capturedImage} savePhoto={savePhoto} retakePicture={retakePhoto} />
           ) : (
             <Camera
               type={cameraType}
@@ -88,7 +90,7 @@ export default function App() {
                   }}
                 >
                   <TouchableOpacity
-                    onPress={__closeCamera}
+                    onPress={closeCamera}
                     style={{
                       marginTop: 20,
                       borderRadius: '50%',
@@ -105,7 +107,7 @@ export default function App() {
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={__switchCamera}
+                    onPress={switchCamera}
                     style={{
                       marginTop: 20,
                       borderRadius: '50%',
@@ -141,7 +143,7 @@ export default function App() {
                     }}
                   >
                     <TouchableOpacity
-                      onPress={__takePicture}
+                      onPress={takePicture}
                       style={{
                         width: 70,
                         height: 70,
@@ -166,7 +168,7 @@ export default function App() {
           }}
         >
           <TouchableOpacity
-            onPress={__startCamera}
+            onPress={openCamera}
             style={{
               width: 130,
               borderRadius: 4,
@@ -203,79 +205,3 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   }
 })
-
-const CameraPreview = ({photo, retakePicture, savePhoto}) => {
-  console.log('sdsfds', photo)
-  return (
-    <View
-      style={{
-        backgroundColor: 'transparent',
-        flex: 1,
-        width: '100%',
-        height: '100%'
-      }}
-    >
-      <ImageBackground
-        source={{uri: photo && photo.uri}}
-        style={{
-          flex: 1
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            flexDirection: 'column',
-            padding: 15,
-            justifyContent: 'flex-end'
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between'
-            }}
-          >
-            <TouchableOpacity
-              onPress={retakePicture}
-              style={{
-                width: 130,
-                height: 40,
-
-                alignItems: 'center',
-                borderRadius: 4
-              }}
-            >
-              <Text
-                style={{
-                  color: '#fff',
-                  fontSize: 20
-                }}
-              >
-                Re-take
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={savePhoto}
-              style={{
-                width: 130,
-                height: 40,
-
-                alignItems: 'center',
-                borderRadius: 4
-              }}
-            >
-              <Text
-                style={{
-                  color: '#fff',
-                  fontSize: 20
-                }}
-              >
-                save photo
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ImageBackground>
-    </View>
-  )
-}
