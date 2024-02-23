@@ -3,11 +3,23 @@ import React, {useState} from 'react'
 import {StyleSheet, Text, View, TouchableOpacity, Alert, ImageBackground, Image} from 'react-native'
 import {Camera} from 'expo-camera'
 import CameraPreview from './components/CameraPreview'
+import { Cloudinary } from "@cloudinary/url-gen";
+
+const cloudinary = new Cloudinary({
+  cloud: {
+    cloudName: 'dyrw53yus'
+  },
+  url: {
+    secure: true
+  }
+});
+
 
 export default function App() {
   const [cameraOpen, setStartCamera] = useState(false)
   const [previewVisible, setPreviewVisible] = useState(false)
   const [capturedImage, setCapturedImage] = useState(null)
+  const [savedPhotoURL, setSavedPhotoURL] = useState('')
   const [cameraType, setCameraType] = useState(Camera.Constants.Type.back)
 
   var camera = null
@@ -34,10 +46,29 @@ export default function App() {
     setCapturedImage(photo)
   }
 
-  const savePhoto = () => {
+  const savePhoto = async () => {
     //add photo to db??
+    var photo = capturedImage.uri;
+    console.log('saving photo: ', photo)
+
+    //cloudinary upload
+    const options = {
+      upload_preset: 're8ry9up',
+      unsigned: true,
+    }
+
+    await cloudinary.upload(cloudinary, {file: photo, options: options, callback: (error, response) => {
+      if(error) {
+        Alert.alert('Error', 'Error uploading photo')
+      } else {
+        console.log('response: ', response)
+        setSavedPhotoURL(response.url)
+      }
+    }});
+    
+
     Alert.alert('Photo saved')
-    setCapturedImage(null)
+    retakePhoto()
   }
   const retakePhoto = () => {
     setCapturedImage(null)
