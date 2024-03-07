@@ -4,6 +4,7 @@ import {StyleSheet, Text, View, TouchableOpacity, Alert, ImageBackground, Image}
 import {Camera} from 'expo-camera'
 import CameraPreview from './components/CameraPreview'
 import { Cloudinary } from "@cloudinary/url-gen";
+import {upload} from 'cloudinary-react-native'
 
 const cloudinary = new Cloudinary({
   cloud: {
@@ -54,17 +55,23 @@ export default function App() {
     //cloudinary upload
     const options = {
       upload_preset: 're8ry9up',
+      tag: 'sample',
       unsigned: true,
     }
 
-    await cloudinary.upload(cloudinary, {file: photo, options: options, callback: (error, response) => {
-      if(error) {
-        Alert.alert('Error', 'Error uploading photo')
-      } else {
-        console.log('response: ', response)
-        setSavedPhotoURL(response.url)
+    await upload(cloudinary, {
+      file: photo,
+      options: options,
+      callback: (error, result) => {
+        if (!error) {
+          console.log('result: ', result)
+          setSavedPhotoURL(result.url)
+        }
+        else {
+          console.log('error: ', error)
+        }
       }
-    }});
+    })
     
 
     Alert.alert('Photo saved')
